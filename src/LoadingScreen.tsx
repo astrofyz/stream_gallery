@@ -8,10 +8,12 @@ export default function LoadingScreen({ visible, fading }: Props) {
 
   return (
     <div className={`loading-screen ${fading ? "loading-screen--fade" : ""}`}>
-      <div className="loading-ring" aria-hidden="true">
-        <div className="loading-ring__track" />
-        <div className="loading-ring__arc" />
-      </div>
+      <img
+        src="/loading-cluster.svg"
+        alt=""
+        aria-hidden="true"
+        className="loading-cluster"
+      />
       <p className="loading-label">Finding a cluster…</p>
     </div>
   );

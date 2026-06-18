@@ -47,28 +47,10 @@ body {
   pointer-events: none;
 }
 
-.loading-ring {
-  position: relative;
-  width: 64px;
-  height: 64px;
-}
-
-.loading-ring__track,
-.loading-ring__arc {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 3px solid transparent;
-}
-
-.loading-ring__track {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.loading-ring__arc {
-  border-top-color: var(--accent);
-  border-right-color: rgba(99, 110, 250, 0.4);
-  animation: spin 1s linear infinite;
+.loading-cluster {
+  width: 72px;
+  height: 72px;
+  animation: spin 10s linear infinite;
 }
 
 @keyframes spin {
