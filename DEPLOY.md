@@ -94,6 +94,8 @@ wrangler r2 bucket create stream-gallery-data
 
 Or upload via the R2 dashboard (drag `tmp/` into the bucket). No CLI needed for that path.
 
+**Wrangler v4 note:** `wrangler r2 object put` defaults to **local** dev storage. The upload script passes `--remote` so objects go to your real bucket. If you see `Resource location: local` in the output, re-run with `--remote`.
+
 **Alternative CLIs** (optional): [rclone](https://developers.cloudflare.com/r2/get-started/cli/) or AWS CLI with an R2 API token — useful for very large trees; Wrangler uploads one file at a time.
 
 Object keys on R2 must be:

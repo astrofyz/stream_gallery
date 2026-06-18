@@ -1,6 +1,23 @@
 import Papa from "papaparse";
 
+import { OMEGA_B_VALUES } from "./constants";
+
 export type CatalogRow = Record<string, string>;
+
+export type ResonanceKind = "CR" | "ILR" | "OLR";
+
+export type ResonanceNote = {
+  kind: ResonanceKind;
+  omega: number;
+};
+
+const FREQRATIO_TOLERANCE = 0.02;
+
+const RESONANCE_TARGETS: ReadonlyArray<{ value: number; kind: ResonanceKind }> = [
+  { value: 0, kind: "CR" },
+  { value: 0.5, kind: "ILR" },
+  { value: -0.5, kind: "OLR" },
+];
 
 export async function loadCatalog(relativeUrl: string): Promise<CatalogRow[]> {
   const url = relativeUrl.startsWith("http")
@@ -48,4 +65,26 @@ export function formatClusterAge(row: CatalogRow): string | null {
     return `${myr.toFixed(1)} Myr`;
   }
   return null;
+}
+
+/** freqratio_{omega} within 0.02 of 0 (CR), +0.5 (ILR), or −0.5 (OLR). */
+export function resonanceNotesForRow(row: CatalogRow): ResonanceNote[] {
+  const notes: ResonanceNote[] = [];
+
+  for (const omega of OMEGA_B_VALUES) {
+    const raw = row[`freqratio_${omega}`]?.trim();
+    if (!raw) continue;
+
+    const value = Number(raw);
+    if (!Number.isFinite(value)) continue;
+
+    for (const { value: target, kind } of RESONANCE_TARGETS) {
+      if (Math.abs(value - target) <= FREQRATIO_TOLERANCE) {
+        notes.push({ kind, omega });
+        break;
+      }
+    }
+  }
+
+  return notes;
 }

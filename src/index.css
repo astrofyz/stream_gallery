@@ -113,6 +113,20 @@ body {
   color: rgba(255, 255, 255, 0.45);
 }
 
+.gallery-meta__resonances {
+  margin-top: 0.35rem;
+}
+
+.gallery-meta__resonance {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
+}
+
+.gallery-meta__resonance-prefix {
+  color: rgba(255, 255, 255, 0.45);
+}
+
 .gallery-body {
   display: flex;
   flex: 1;

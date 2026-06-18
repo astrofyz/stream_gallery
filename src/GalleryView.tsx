@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
 
-import { formatClusterAge, formatClusterName, type CatalogRow } from "./catalog";
+import {
+  formatClusterAge,
+  formatClusterName,
+  resonanceNotesForRow,
+  type CatalogRow,
+} from "./catalog";
 import {
   ensureRunBundle,
   getCachedBundle,
@@ -11,6 +16,7 @@ import type { ManifestRun } from "./manifest";
 import {
   buildLayout,
   buildTraces,
+  omegaColor,
   orbitSquareRange,
   streamRange,
   type StreamRangeMode,
@@ -135,6 +141,7 @@ export default function GalleryView({
   };
 
   const age = catalogRow ? formatClusterAge(catalogRow) : null;
+  const resonanceNotes = catalogRow ? resonanceNotesForRow(catalogRow) : [];
   const hasData = plotData.length > 0;
 
   return (
@@ -142,6 +149,23 @@ export default function GalleryView({
       <header className="gallery-meta">
         <h1 className="gallery-meta__name">{formatClusterName(cluster)}</h1>
         {age && <p className="gallery-meta__age">{age}</p>}
+        {resonanceNotes.length > 0 && (
+          <div className="gallery-meta__resonances">
+            {resonanceNotes.map((note) => (
+              <p
+                key={`${note.kind}-${note.omega}`}
+                className="gallery-meta__resonance"
+              >
+                <span className="gallery-meta__resonance-prefix">
+                  Near {note.kind} at{" "}
+                </span>
+                <span style={{ color: omegaColor(note.omega) }}>
+                  Ω = {note.omega}
+                </span>
+              </p>
+            ))}
+          </div>
+        )}
       </header>
 
       <div className="gallery-body">

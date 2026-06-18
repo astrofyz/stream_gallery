@@ -24,8 +24,6 @@ export default function RunChips({
   onToggle,
   vertical = false,
 }: Props) {
-  let paletteIdx = 0;
-
   const chips = (
     <div
       className={`run-chips ${vertical ? "run-chips--vertical" : ""}`}
@@ -35,8 +33,7 @@ export default function RunChips({
       {runs.map((run) => {
         const isOn = selected.has(run.id);
         const isLoading = loadingRuns.has(run.id);
-        const color = runColor(run.id, run.id === "nobar" ? 0 : paletteIdx);
-        if (run.id !== "nobar") paletteIdx++;
+        const color = runColor(run.id);
 
         return (
           <button

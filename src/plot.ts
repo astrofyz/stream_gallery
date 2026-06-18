@@ -1,23 +1,83 @@
 import type { Data, Layout } from "plotly.js";
-import { ISESCAPER_BOUND_SENTINEL, isescaperToMyrForColor } from "./constants";
+import { ISESCAPER_BOUND_SENTINEL, isescaperToMyrForColor, OMEGA_B_VALUES } from "./constants";
 import type { RunBundle, XYSeries } from "./npz";
 import { percentile1d, subsample1d } from "./stats";
 import { parseRunId } from "./paths";
 import type { ManifestRun } from "./manifest";
 
-export const PLOT_COLORS = [
-  "#636efa",
-  "#ef553b",
-  "#00cc96",
-  "#ab63fa",
-  "#ffa15a",
-  "#19d3f3",
-  "#ff6692",
-  "#b6e880",
-  "#ff97ff",
+/** Plotly built-in Portland (sampled for per-Ω_b marker colors). */
+const PORTLAND: ReadonlyArray<[number, string]> = [
+  [0, "rgb(12,51,131)"],
+  [0.25, "rgb(10,136,186)"],
+  [0.5, "rgb(242,211,56)"],
+  [0.75, "rgb(242,143,56)"],
+  [1, "rgb(217,30,30)"],
+];
+
+/** Plotly Viridis LUT (named scale; explicit array avoids scattergl autocolorscale → Blues). */
+const VIRIDIS_COLORSCALE: ReadonlyArray<[number, string]> = [
+  [0, "#440154"],
+  [0.062745, "#48186a"],
+  [0.12549, "#472d7b"],
+  [0.188235, "#424086"],
+  [0.25098, "#3b528b"],
+  [0.313725, "#33638d"],
+  [0.376471, "#2c728e"],
+  [0.439216, "#26828e"],
+  [0.501961, "#21918c"],
+  [0.564706, "#1fa088"],
+  [0.627451, "#28ae80"],
+  [0.690196, "#3fbc73"],
+  [0.752941, "#5ec962"],
+  [0.815686, "#84d44b"],
+  [0.878431, "#addc30"],
+  [0.941176, "#d8e219"],
+  [1, "#fde725"],
 ];
 
 export const NOBAR_COLOR = "#8a8a8a";
+
+function parseRgb(color: string): [number, number, number] {
+  const rgb = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(color);
+  if (rgb) return [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
+  const hex = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color);
+  if (hex) {
+    return [parseInt(hex[1]!, 16), parseInt(hex[2]!, 16), parseInt(hex[3]!, 16)];
+  }
+  return [138, 138, 138];
+}
+
+function sampleColorscale(scale: ReadonlyArray<[number, string]>, t: number): string {
+  const x = Math.max(0, Math.min(1, t));
+  let i = 0;
+  while (i < scale.length - 1 && scale[i + 1]![0] < x) i++;
+
+  const [t0, c0] = scale[i]!;
+  const [t1, c1] = scale[Math.min(i + 1, scale.length - 1)]!;
+  if (t0 === t1) return c0;
+
+  const f = (x - t0) / (t1 - t0);
+  const [r0, g0, b0] = parseRgb(c0);
+  const [r1, g1, b1] = parseRgb(c1);
+  const r = Math.round(r0 + (r1 - r0) * f);
+  const g = Math.round(g0 + (g1 - g0) * f);
+  const b = Math.round(b0 + (b1 - b0) * f);
+  return `rgb(${r},${g},${b})`;
+}
+
+/** Portland color for a bar-pattern speed (Ω_b). */
+export function omegaColor(omega: number): string {
+  const idx = (OMEGA_B_VALUES as readonly number[]).indexOf(omega);
+  if (idx < 0) return NOBAR_COLOR;
+  const t = idx / (OMEGA_B_VALUES.length - 1);
+  return sampleColorscale(PORTLAND, t);
+}
+
+export function runColor(runId: string): string {
+  if (runId === "nobar") return NOBAR_COLOR;
+  const m = /^omega-(\d+)$/.exec(runId);
+  return m ? omegaColor(Number(m[1])) : NOBAR_COLOR;
+}
 
 const P_LO_TIGHT = 1;
 const P_HI_TIGHT = 99;
@@ -26,10 +86,6 @@ const P_HI_WIDE = 100;
 
 export type ViewMode = "stream" | "orbit" | "bf_orbit";
 export type StreamRangeMode = "tight" | "wide";
-
-export function runColor(runId: string, paletteIdx: number): string {
-  return runId === "nobar" ? NOBAR_COLOR : PLOT_COLORS[paletteIdx % PLOT_COLORS.length]!;
-}
 
 function orbitSeries(bundle: RunBundle, viewMode: ViewMode): XYSeries {
   return viewMode === "bf_orbit" ? bundle.bfOrbit : bundle.orbit;
@@ -146,7 +202,6 @@ export function buildTraces(
   showEscapeTime: boolean,
 ): Data[] {
   const traces: Data[] = [];
-  let paletteIdx = 0;
   const escRange = showEscapeTime
     ? computeIsescaperColorRange(bundles, cluster, selectedRuns)
     : null;
@@ -194,8 +249,7 @@ export function buildTraces(
     const b = bundles.get(`${cluster}|${runId}`);
     if (!b) continue;
     const label = runList.find((r) => r.id === runId)?.label ?? runId;
-    const solidColor =
-      runId === "nobar" ? NOBAR_COLOR : PLOT_COLORS[paletteIdx++ % PLOT_COLORS.length]!;
+    const solidColor = runColor(runId);
 
     if (viewMode === "stream") {
       const xs = b.stream.x;
@@ -217,7 +271,8 @@ export function buildTraces(
           size: 2,
           opacity: 0.8,
           color: escMyr,
-          colorscale: "Plasma",
+          colorscale: [...VIRIDIS_COLORSCALE],
+          autocolorscale: false,
           cmin: escRange.cmin,
           cmax: escRange.cmax,
           colorbar: showBar
