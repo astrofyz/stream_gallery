@@ -1,0 +1,9 @@
+# R2 bucket for gallery NPZ data (used by scripts/upload_gallery_r2.sh)
+# Create with: wrangler r2 bucket create stream-gallery-data
+
+name = "stream-gallery"
+compatibility_date = "2024-01-01"
+
+# [[r2_buckets]]
+# binding = "GALLERY_DATA"
+# bucket_name = "stream-gallery-data"
