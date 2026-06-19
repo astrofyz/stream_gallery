@@ -40,9 +40,10 @@ export default function GalleryView({
 }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>("stream");
   const [showEscapeTime, setShowEscapeTime] = useState(false);
-  const [streamRangeMode, setStreamRangeMode] = useState<StreamRangeMode>("tight");
+  const [streamRangeMode, setStreamRangeMode] = useState<StreamRangeMode>("wide");
   const [zoomScale, setZoomScale] = useState(1);
   const [zoomRevision, setZoomRevision] = useState(0);
+  const [showSunCircle, setShowSunCircle] = useState(false);
   const [selectedRuns, setSelectedRuns] = useState<Set<string>>(
     () => new Set(initialSelected),
   );
@@ -131,14 +132,23 @@ export default function GalleryView({
     [bundles, cluster, selectedRuns, runList, viewMode, showEscapeTime, cacheTick],
   );
 
-  const revision = `${cluster}-${viewMode}-${showEscapeTime}-${streamRangeMode}-${zoomScale}-${zoomRevision}-${[...selectedRuns].sort().join(",")}`;
+  const revision = `${cluster}-${viewMode}-${showEscapeTime}-${showSunCircle}-${streamRangeMode}-${zoomScale}-${zoomRevision}-${[...selectedRuns].sort().join(",")}`;
   const layout = useMemo(
-    () => buildLayout(axisRange, viewMode, showEscapeTime, revision),
-    [axisRange, viewMode, showEscapeTime, revision],
+    () =>
+      buildLayout(
+        axisRange,
+        viewMode,
+        showEscapeTime,
+        revision,
+        showSunCircle,
+      ),
+    [axisRange, viewMode, showEscapeTime, revision, showSunCircle],
   );
 
+  const orbitLike = viewMode === "orbit" || viewMode === "bf_orbit";
+
   const resetStreamZoom = () => {
-    setStreamRangeMode("tight");
+    setStreamRangeMode("wide");
     setZoomScale(1);
     setZoomRevision((n) => n + 1);
   };
@@ -195,6 +205,9 @@ export default function GalleryView({
             loadingRuns={loadingRuns}
             onToggle={toggleRun}
             vertical
+            showSunChip={orbitLike}
+            sunChipOn={showSunCircle}
+            onToggleSunChip={() => setShowSunCircle((v) => !v)}
           />
           {viewMode === "stream" && (
             <label className="escape-toggle escape-toggle--sidebar">

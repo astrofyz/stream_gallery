@@ -8,6 +8,9 @@ type Props = {
   loadingRuns: Set<string>;
   onToggle: (runId: string) => void;
   vertical?: boolean;
+  showSunChip?: boolean;
+  sunChipOn?: boolean;
+  onToggleSunChip?: () => void;
 };
 
 /** Short chip label: nobar → "0", omega-20 → "20". */
@@ -23,6 +26,9 @@ export default function RunChips({
   loadingRuns,
   onToggle,
   vertical = false,
+  showSunChip = false,
+  sunChipOn = false,
+  onToggleSunChip,
 }: Props) {
   const chips = (
     <div
@@ -51,6 +57,20 @@ export default function RunChips({
           </button>
         );
       })}
+      {showSunChip && onToggleSunChip && (
+        <button
+          type="button"
+          className={`run-chip run-chip--sun ${sunChipOn ? "run-chip--on" : ""}`}
+          style={{ "--chip-color": "#e8b84a" } as CSSProperties}
+          aria-pressed={sunChipOn}
+          aria-label="Solar circle 8.34 kpc"
+          onClick={onToggleSunChip}
+        >
+          <span className="run-chip__sun" aria-hidden>
+            ⊙
+          </span>
+        </button>
+      )}
     </div>
   );
 

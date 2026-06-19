@@ -1,6 +1,9 @@
 /** Bar pattern speeds (folder suffix omega_b). */
 export const OMEGA_B_VALUES = [20, 25, 30, 35, 39, 45, 50, 55] as const;
 
+/** Solar circle overlay radius (kpc) in orbit / bar-frame views. */
+export const SOLAR_CIRCLE_RADIUS_KPC = 8.34;
+
 export const SNAPSHOT_FILE = "last_snapshot.npz";
 export const ORBIT_FILE = "backward_orbit.npz";
 

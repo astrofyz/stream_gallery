@@ -323,6 +323,22 @@ body {
   padding: 0.4rem 0.5rem;
 }
 
+.run-chip--sun {
+  justify-content: center;
+  padding: 0.4rem 0.45rem;
+}
+
+.run-chip__sun {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.run-chip--on.run-chip--sun {
+  border-color: color-mix(in srgb, #e8b84a 65%, transparent);
+  background: color-mix(in srgb, #e8b84a 15%, transparent);
+  color: #f5d78a;
+}
+
 .run-column {
   display: flex;
   flex-direction: column;

@@ -1,5 +1,5 @@
 import type { Data, Layout } from "plotly.js";
-import { ISESCAPER_BOUND_SENTINEL, isescaperToMyrForColor, OMEGA_B_VALUES } from "./constants";
+import { ISESCAPER_BOUND_SENTINEL, isescaperToMyrForColor, OMEGA_B_VALUES, SOLAR_CIRCLE_RADIUS_KPC } from "./constants";
 import type { RunBundle, XYSeries } from "./npz";
 import { percentile1d, subsample1d } from "./stats";
 import { parseRunId } from "./paths";
@@ -224,7 +224,7 @@ export function buildTraces(
     traces.push({
       type: "scattergl",
       mode: "markers",
-      name: "Galactic centre",
+      name: "GC",
       x: [0],
       y: [0],
       marker: {
@@ -242,7 +242,7 @@ export function buildTraces(
     traces.push({
       type: "scattergl",
       mode: "markers",
-      name: "Bar centre",
+      name: "GC",
       x: [0],
       y: [0],
       marker: {
@@ -335,6 +335,7 @@ export function buildLayout(
   viewMode: ViewMode,
   showEscapeTime: boolean,
   revision: string,
+  showSunCircle = false,
 ): Partial<Layout> {
   const orbitLike = viewMode === "orbit" || viewMode === "bf_orbit";
 
@@ -345,7 +346,7 @@ export function buildLayout(
       y: 0,
       xref: "x",
       yref: "y",
-      text: "Galactic centre",
+      text: "GC",
       showarrow: false,
       xanchor: "left",
       xshift: 10,
@@ -358,11 +359,32 @@ export function buildLayout(
       y: 0,
       xref: "x",
       yref: "y",
-      text: "Bar centre",
+      text: "GC",
       showarrow: false,
       xanchor: "left",
       xshift: 10,
       font: { size: 10, color: "rgba(255,255,255,0.55)" },
+    });
+  }
+
+  const shapes: Partial<Layout>["shapes"] = [];
+  if (orbitLike && showSunCircle) {
+    const r = SOLAR_CIRCLE_RADIUS_KPC;
+    shapes.push({
+      type: "circle",
+      xref: "x",
+      yref: "y",
+      x0: -r,
+      y0: -r,
+      x1: r,
+      y1: r,
+      line: {
+        color: "rgba(232,184,74,0.7)",
+        width: 1.5,
+        dash: "dash",
+      },
+      fillcolor: "rgba(0,0,0,0)",
+      layer: "above",
     });
   }
 
@@ -379,6 +401,7 @@ export function buildLayout(
     hovermode: false,
     showlegend: false,
     annotations,
+    shapes: shapes.length > 0 ? shapes : undefined,
     xaxis: {
       showgrid: false,
       zeroline: orbitLike,
