@@ -87,6 +87,19 @@ const P_HI_WIDE = 100;
 export type ViewMode = "stream" | "orbit" | "bf_orbit";
 export type StreamRangeMode = "tight" | "wide";
 
+/** Shrink/expand axis limits about centre (factor < 1 = zoom in). */
+export function scaleAxisRange(
+  range: { x: [number, number]; y: [number, number] } | null,
+  factor: number,
+): { x: [number, number]; y: [number, number] } | null {
+  if (!range || factor <= 0) return range;
+  const cx = (range.x[0] + range.x[1]) / 2;
+  const cy = (range.y[0] + range.y[1]) / 2;
+  const hx = ((range.x[1] - range.x[0]) / 2) * factor;
+  const hy = ((range.y[1] - range.y[0]) / 2) * factor;
+  return { x: [cx - hx, cx + hx], y: [cy - hy, cy + hy] };
+}
+
 function orbitSeries(bundle: RunBundle, viewMode: ViewMode): XYSeries {
   return viewMode === "bf_orbit" ? bundle.bfOrbit : bundle.orbit;
 }
@@ -356,6 +369,7 @@ export function buildLayout(
   return {
     paper_bgcolor: "transparent",
     plot_bgcolor: "transparent",
+    dragmode: viewMode === "stream" ? "pan" : false,
     margin: {
       l: 8,
       r: showEscapeTime && viewMode === "stream" ? 48 : 8,

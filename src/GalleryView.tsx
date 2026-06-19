@@ -18,6 +18,7 @@ import {
   buildTraces,
   omegaColor,
   orbitSquareRange,
+  scaleAxisRange,
   streamRange,
   type StreamRangeMode,
   type ViewMode,
@@ -40,6 +41,7 @@ export default function GalleryView({
   const [viewMode, setViewMode] = useState<ViewMode>("stream");
   const [showEscapeTime, setShowEscapeTime] = useState(false);
   const [streamRangeMode, setStreamRangeMode] = useState<StreamRangeMode>("tight");
+  const [zoomScale, setZoomScale] = useState(1);
   const [zoomRevision, setZoomRevision] = useState(0);
   const [selectedRuns, setSelectedRuns] = useState<Set<string>>(
     () => new Set(initialSelected),
@@ -104,12 +106,17 @@ export default function GalleryView({
     });
   };
 
-  const axisRange = useMemo(() => {
+  const baseAxisRange = useMemo(() => {
     if (viewMode === "orbit" || viewMode === "bf_orbit") {
       return orbitSquareRange(bundles, cluster, selectedRuns, viewMode);
     }
     return streamRange(bundles, cluster, selectedRuns, streamRangeMode);
   }, [bundles, cluster, selectedRuns, viewMode, streamRangeMode, cacheTick]);
+
+  const axisRange = useMemo(() => {
+    if (viewMode !== "stream" || zoomScale === 1) return baseAxisRange;
+    return scaleAxisRange(baseAxisRange, zoomScale);
+  }, [baseAxisRange, viewMode, zoomScale]);
 
   const plotData = useMemo(
     () =>
@@ -124,7 +131,7 @@ export default function GalleryView({
     [bundles, cluster, selectedRuns, runList, viewMode, showEscapeTime, cacheTick],
   );
 
-  const revision = `${cluster}-${viewMode}-${showEscapeTime}-${streamRangeMode}-${zoomRevision}-${[...selectedRuns].sort().join(",")}`;
+  const revision = `${cluster}-${viewMode}-${showEscapeTime}-${streamRangeMode}-${zoomScale}-${zoomRevision}-${[...selectedRuns].sort().join(",")}`;
   const layout = useMemo(
     () => buildLayout(axisRange, viewMode, showEscapeTime, revision),
     [axisRange, viewMode, showEscapeTime, revision],
@@ -132,11 +139,23 @@ export default function GalleryView({
 
   const resetStreamZoom = () => {
     setStreamRangeMode("tight");
+    setZoomScale(1);
+    setZoomRevision((n) => n + 1);
+  };
+
+  const zoomWideStream = () => {
+    setStreamRangeMode("wide");
+    setZoomScale(1);
+    setZoomRevision((n) => n + 1);
+  };
+
+  const zoomInStream = () => {
+    setZoomScale((s) => Math.max(0.15, s * 0.75));
     setZoomRevision((n) => n + 1);
   };
 
   const zoomOutStream = () => {
-    setStreamRangeMode("wide");
+    setZoomScale((s) => Math.min(4, s * 1.35));
     setZoomRevision((n) => n + 1);
   };
 
@@ -177,6 +196,16 @@ export default function GalleryView({
             onToggle={toggleRun}
             vertical
           />
+          {viewMode === "stream" && (
+            <label className="escape-toggle escape-toggle--sidebar">
+              <input
+                type="checkbox"
+                checked={showEscapeTime}
+                onChange={(e) => setShowEscapeTime(e.target.checked)}
+              />
+              <span>Escape time</span>
+            </label>
+          )}
         </aside>
 
         <div className="gallery-main">
@@ -201,8 +230,12 @@ export default function GalleryView({
           </div>
 
           <footer className="gallery-controls">
-            <div className="gallery-controls__row">
-              <div className="view-toggle view-toggle--triple" role="group" aria-label="View mode">
+            <div className="gallery-controls__main">
+              <div
+                className="view-toggle view-toggle--triple"
+                role="group"
+                aria-label="View mode"
+              >
                 <button
                   type="button"
                   className={`view-toggle__btn ${viewMode === "stream" ? "view-toggle__btn--active" : ""}`}
@@ -226,37 +259,41 @@ export default function GalleryView({
                 </button>
               </div>
 
-              <div className="gallery-controls__actions">
-                {viewMode === "stream" && (
-                  <>
-                    <button
-                      type="button"
-                      className="zoom-btn"
-                      onClick={zoomOutStream}
-                      disabled={streamRangeMode === "wide"}
-                    >
-                      Zoom out
-                    </button>
-                    <button
-                      type="button"
-                      className="zoom-btn"
-                      onClick={resetStreamZoom}
-                    >
-                      Reset
-                    </button>
-                  </>
-                )}
-
-                <label className="escape-toggle">
-                  <input
-                    type="checkbox"
-                    checked={showEscapeTime}
-                    disabled={viewMode !== "stream"}
-                    onChange={(e) => setShowEscapeTime(e.target.checked)}
-                  />
-                  <span>Escape time</span>
-                </label>
-              </div>
+              {viewMode === "stream" && (
+                <div className="zoom-stack" role="group" aria-label="Zoom">
+                  <button
+                    type="button"
+                    className="zoom-btn zoom-btn--icon"
+                    onClick={zoomInStream}
+                    aria-label="Zoom in"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    className="zoom-btn zoom-btn--icon"
+                    onClick={zoomOutStream}
+                    aria-label="Zoom out"
+                  >
+                    −
+                  </button>
+                  <button
+                    type="button"
+                    className="zoom-btn"
+                    onClick={zoomWideStream}
+                    disabled={streamRangeMode === "wide" && zoomScale === 1}
+                  >
+                    Wide
+                  </button>
+                  <button
+                    type="button"
+                    className="zoom-btn"
+                    onClick={resetStreamZoom}
+                  >
+                    Reset
+                  </button>
+                </div>
+              )}
             </div>
           </footer>
         </div>

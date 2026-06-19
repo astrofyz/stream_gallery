@@ -119,7 +119,9 @@ body {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 0.65rem;
   padding: 0.35rem 0.25rem 0.35rem 0.5rem;
   max-height: 100%;
 }
@@ -137,6 +139,7 @@ body {
   min-height: 0;
   position: relative;
   padding: 0 0.25rem 0 0;
+  touch-action: none;
 }
 
 .gallery-plot__empty {
@@ -170,12 +173,23 @@ body {
   background: linear-gradient(to top, #0a0a0f 70%, transparent);
 }
 
-.gallery-controls__actions {
+.gallery-controls__main {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.zoom-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.zoom-stack .zoom-btn {
+  min-width: 3.25rem;
+  text-align: center;
 }
 
 .zoom-btn {
@@ -198,12 +212,34 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.gallery-controls__row {
+.zoom-btn--icon {
+  padding: 0.35rem 0.5rem;
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 500;
+}
+
+.escape-toggle {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.6rem;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.2;
+}
+
+.escape-toggle--sidebar {
+  flex-direction: column;
+  text-align: center;
+  max-width: 5.5rem;
+  padding-top: 0.15rem;
+  border-top: 1px solid var(--surface-border);
+}
+
+.escape-toggle input {
+  accent-color: var(--accent);
 }
 
 .view-toggle {
@@ -235,25 +271,6 @@ body {
 .view-toggle--triple .view-toggle__btn {
   padding: 0.35rem 0.65rem;
   font-size: 0.78rem;
-}
-
-.escape-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.55);
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.escape-toggle input {
-  accent-color: var(--accent);
-}
-
-.escape-toggle input:disabled + span {
-  opacity: 0.35;
 }
 
 /* Run chips */
